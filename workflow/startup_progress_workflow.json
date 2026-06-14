@@ -1,0 +1,509 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1mUcz6zWts-vxDE7IlNN8lY_hopgHY-_dYf8pKze0KpM",
+          "mode": "list",
+          "cachedResultName": "startup weekly updates",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mUcz6zWts-vxDE7IlNN8lY_hopgHY-_dYf8pKze0KpM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 435386534,
+          "mode": "list",
+          "cachedResultName": "Form Responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mUcz6zWts-vxDE7IlNN8lY_hopgHY-_dYf8pKze0KpM/edit#gid=435386534"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d8313c22-3876-4e9d-bc5f-5d2615f3c80f",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "0Cq6YucCYIlEoiXS",
+          "name": "Google Sheets Trigger OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get values from Google Form\nconst revenue = Number($json[\"Revenue This Week (₹)\"] || 0);\nconst users = Number($json[\"Active Users\"] || 0);\nconst customers = Number($json[\"New Customers Acquired\"] || 0);\n\n// Calculate simple scores\nlet revenueScore = revenue >= 10000 ? 40 : 20;\nlet userScore = users >= 1000 ? 30 : 15;\nlet customerScore = customers >= 50 ? 30 : 15;\n\n// Total Health Score\nlet healthScore = revenueScore + userScore + customerScore;\n\n// Health Status\nlet status = \"\";\n\nif (healthScore >= 80) {\n  status = \"🟢 Healthy\";\n} else if (healthScore >= 50) {\n  status = \"🟡 Moderate\";\n} else {\n  status = \"🔴 Critical\";\n}\n\n// Return original data + calculated KPIs\nreturn [\n  {\n    json: {\n      ...$json,\n      RevenueScore: revenueScore,\n      UserScore: userScore,\n      CustomerScore: customerScore,\n      HealthScore: healthScore,\n      StartupStatus: status\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "2c1ce5ae-7d7d-4f73-a0e8-d44cc961203d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2677db0a-907e-4bcf-8b47-8b1326592938",
+              "leftValue": "={{ $json['Question 7:Was the milestone completed?? '] }}",
+              "rightValue": "no",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b6177895-bd2e-4c57-961a-a58103b4169a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "df46bb97-0f3e-4859-b67a-1a2aeee81339",
+              "name": "MilestoneStatus",
+              "value": "⚠️ Delayed",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "35ac2dc7-b877-4bf1-9dc2-11aea3fd44cd",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "08efbc9f-3472-4253-b2fc-baa129bd52fa",
+              "name": "MilestoneStatus",
+              "value": "✅ On Track",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        96
+      ],
+      "id": "483095de-83b2-424c-8c08-fd4ec38faa88",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-nano",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-NANO"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are an expert startup analyst.\n\nAnalyze the following weekly startup update and generate a professional report.\n\nStartup Name: {{ $json[\"Question 1: Startup Name\"] }}\nRevenue: {{ $json[\"Question 3: Revenue This Week (₹)\"] }}\nActive Users: {{ $json[\"Question 4: Active Users\"] }}\nNew Customers: {{ $json[\"Question 5: New Customers Acquired\"] }}\nMilestone Status: {{ $json[\"MilestoneStatus\"] }}\nHealth Score: {{ $json[\"HealthScore\"] }}\nStartup Status: {{ $json[\"StartupStatus\"] }}\nChallenges: {{ $json[\"Question 9: Challenges Faced This Week\"] }}\nNext Week Goal: {{ $json[\"Question 10: Goals for Next Week\"] }}\n\nGenerate:\n1. Executive Summary\n2. KPI Analysis\n3. Milestone Status\n4. Risks and Challenges\n5. Recommendations for Next Week\n\nKeep the report concise and professional."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        -96
+      ],
+      "id": "4f6dfbb0-37a3-4cce-854e-ab5f82c3e1f2",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Wfnip1R4eyBdr30j",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1mUcz6zWts-vxDE7IlNN8lY_hopgHY-_dYf8pKze0KpM",
+          "mode": "list",
+          "cachedResultName": "startup weekly updates",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mUcz6zWts-vxDE7IlNN8lY_hopgHY-_dYf8pKze0KpM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 114284577,
+          "mode": "list",
+          "cachedResultName": "Reports",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mUcz6zWts-vxDE7IlNN8lY_hopgHY-_dYf8pKze0KpM/edit#gid=114284577"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Startup Name": "={{ $('Google Sheets Trigger').item.json[' Question1. what is your  Startup Name '] }}",
+            "Week Number": "={{ $('Google Sheets Trigger').item.json['Question2. Week Number '] }}",
+            "Health Score": "={{ $('Code in JavaScript').item.json.HealthScore }}",
+            "AI Report": "={{ $json.output[0].content[0].text }}",
+            "Timestamp": "={{ $('Edit Fields').item.json.Timestamp }}",
+            "Milestone Status": "={{ $('Edit Fields').item.json.MilestoneStatus }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Startup Name",
+              "displayName": "Startup Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Week Number",
+              "displayName": "Week Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Health Score",
+              "displayName": "Health Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Milestone Status",
+              "displayName": "Milestone Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI Report",
+              "displayName": "AI Report",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1184,
+        -96
+      ],
+      "id": "3eaed7e4-f2c3-4236-a0bd-0995a0bf5cac",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Art6eNQbDC1oznSj",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "kavendersingh522@gmail.com",
+        "subject": "Weekly Startup Progress Report",
+        "message": "=<h2>🚀 Weekly Startup Progress Report</h2>\n\n<p><b>Startup Name:</b> {{ $json[\"Startup Name\"] }}</p>\n\n<p><b>Week Number:</b> {{ $json[\"Week Number\"] }}</p>\n\n<p><b>Health Score:</b> {{ $json[\"Health Score\"] }}</p>\n\n<p><b>Milestone Status:</b> {{ $json[\"Milestone Status\"] }}</p>\n\n<hr>\n\n<h3>🤖 AI Generated Report</h3>\n\n<p>{{ $json[\"AI Report\"] }}</p>\n\n<hr>\n\n<p><i>This report was automatically generated by the n8n Startup Progress Monitoring Dashboard.</i></p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1392,
+        -96
+      ],
+      "id": "4d72234d-4c5d-44cf-b776-ed1d4cf11249",
+      "name": "Send a message",
+      "webhookId": "aadcc32a-c44e-4278-a359-d2620bdfa96a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "77kECJFauXzOWRxZ",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1mUcz6zWts-vxDE7IlNN8lY_hopgHY-_dYf8pKze0KpM",
+          "mode": "list",
+          "cachedResultName": "startup weekly updates",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mUcz6zWts-vxDE7IlNN8lY_hopgHY-_dYf8pKze0KpM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1538230201,
+          "mode": "list",
+          "cachedResultName": "Delayed Milestones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mUcz6zWts-vxDE7IlNN8lY_hopgHY-_dYf8pKze0KpM/edit#gid=1538230201"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $('Google Sheets Trigger').item.json.Timestamp }}",
+            "Startup Name": "={{ $('Google Sheets Trigger').item.json[' Question1. what is your  Startup Name '] }}",
+            "Week Number": "={{ $('Google Sheets Trigger').item.json['Question2. Week Number '] }}",
+            "Health Score": "={{ $('Code in JavaScript').item.json.HealthScore }}",
+            "Delay Reason": "={{ $('Google Sheets Trigger').item.json['Question8: If not completed, what was the reason for the delay?'] }}",
+            "AI Report": "={{ $('Message a model').item.json.output[0].content[0].text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Startup Name",
+              "displayName": "Startup Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Week Number",
+              "displayName": "Week Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Health Score",
+              "displayName": "Health Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Delay Reason",
+              "displayName": "Delay Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI Report",
+              "displayName": "AI Report",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1600,
+        -96
+      ],
+      "id": "42dd362c-e5ef-48a5-99c3-3f8e16a81ca0",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Art6eNQbDC1oznSj",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        []
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b2fd333f-cb4e-4df2-bb6c-65d6d2d6539f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "48fe30c1f9218048f973bc0d09deebea38e9863eb95387a212c0fd65fe341670"
+  },
+  "nodeGroups": [],
+  "id": "2NR9OKBJlbLwx3oK",
+  "tags": []
+}
